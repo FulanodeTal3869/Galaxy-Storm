@@ -8,7 +8,7 @@ pygame.mixer.init()
 LARGURA = 800
 ALTURA = 600
 tela = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Nave Retrô")
+pygame.display.set_caption("Galaxy Storm")
 
 clock = pygame.time.Clock()
 
@@ -19,6 +19,8 @@ except:
     som_tiro = None
 
 # Imagens
+logo = pygame.image.load("logo.png").convert_alpha()
+logo = pygame.transform.scale(logo, (300, 400))
 nave_img = pygame.image.load("nave.png").convert_alpha()
 nave_img = pygame.transform.scale(nave_img, (64, 64))
 
@@ -118,14 +120,9 @@ while rodando:
     if estado == MENU:
 
         tela.fill((0, 0, 20))
-
-        titulo = fonte_grande.render("NAVE RETRO",True,(255, 255, 255))
-
         iniciar = fonte.render("Pressione ESPACO para jogar",True,(255, 255, 255))
-
-        tela.blit(titulo,(LARGURA // 2 - titulo.get_width() // 2,200))
-
-        tela.blit(iniciar,(LARGURA // 2 - iniciar.get_width() // 2,320))
+        tela.blit(logo,(LARGURA // 2 - logo.get_width() // 2, 90))
+        tela.blit(iniciar,(LARGURA // 2 - iniciar.get_width() // 2,440))
 
     # JOGO
     elif estado == JOGANDO:
