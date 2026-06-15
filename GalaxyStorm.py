@@ -4,55 +4,112 @@ import random
 pygame.init()
 pygame.mixer.init()
 
-# Tela
+# =========================
+# TELA
+# =========================
+
 LARGURA = 800
 ALTURA = 600
+
 tela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Galaxy Storm")
 
 clock = pygame.time.Clock()
 
-# Som
+# =========================
+# SOM
+# =========================
+
 try:
     som_tiro = pygame.mixer.Sound("bala.mp3")
 except:
     som_tiro = None
 
-# Imagens
+try:
+    som_gameover = pygame.mixer.Sound("gameover.mp3")
+except:
+    som_gameover = None
+
+try:
+    som_dano = pygame.mixer.Sound("alarm.mp3")
+except:
+    som_dano = None
+
+modo_jogo = 1
+som_gameover_tocado = False
+
+# =========================
+# IMAGENS
+# =========================
+
 logo = pygame.image.load("logo.png").convert_alpha()
 logo = pygame.transform.scale(logo, (300, 400))
+
 nave_img = pygame.image.load("nave.png").convert_alpha()
 nave_img = pygame.transform.scale(nave_img, (64, 64))
+
+# Nave do jogador 2
+try:
+    nave2_img = pygame.image.load("nave2.png").convert_alpha()
+    nave2_img = pygame.transform.scale(nave2_img, (64, 64))
+except:
+    nave2_img = nave_img
 
 inimigo_img = pygame.image.load("inimigo.png").convert_alpha()
 inimigo_img = pygame.transform.scale(inimigo_img, (50, 50))
 
-# Fontes
+# Fundo
+try:
+    fundo = pygame.image.load("Fundo.jpg").convert()
+    fundo = pygame.transform.scale(fundo, (LARGURA, ALTURA))
+except:
+    fundo = None
+
+try:
+    som_explosao = pygame.mixer.Sound("explosão.wav")
+except:
+    som_explosao = None
+
+# =========================
+# FONTES
+# =========================
+
 fonte = pygame.font.SysFont(None, 40)
 fonte_grande = pygame.font.SysFont(None, 70)
 
-# Estados
+# =========================
+# ESTADOS
+# =========================
+
 MENU = 0
 JOGANDO = 1
 GAMEOVER = 2
 
+condicao = 0
+
 estado = MENU
 
-# Variáveis globais
-velocidade = 8
+# =========================
+# CONFIG
+# =========================
 
+velocidade = 8
+modo_jogo = 1
+
+# =========================
+# REINICIAR
+# =========================
 
 def reiniciar():
-    global jogador_x
-    global jogador_y
-    global tiros
-    global inimigos
-    global pontos
-    global vida
-    global spawn_timer
+    global jogador_x,jogador_y,jogador2_x,jogador2_y,tiros,inimigos,pontos,vida,spawn_timer,som_gameover_tocado
 
-    jogador_x = LARGURA // 2
-    jogador_y = ALTURA - 80
+    som_gameover_tocado = False
+
+    jogador_x = 250
+    jogador_y = ALTURA - 90
+
+    jogador2_x = 500
+    jogador2_y = ALTURA - 90
 
     tiros = []
     inimigos = []
@@ -62,8 +119,12 @@ def reiniciar():
 
     spawn_timer = 0
 
+# =========================
+# CLASSE INIMIGO
+# =========================
 
 class Inimigo:
+
     def __init__(self):
         self.x = random.randint(0, LARGURA - 50)
         self.y = -50
@@ -75,32 +136,62 @@ class Inimigo:
     def desenhar(self):
         tela.blit(inimigo_img, (self.x, self.y))
 
+# =========================
+# INICIAR
+# =========================
 
 reiniciar()
 
 rodando = True
 
+# =========================
+# LOOP PRINCIPAL
+# =========================
+
 while rodando:
 
     clock.tick(60)
 
-    # Eventos
+    if fundo:
+        tela.blit(fundo, (0, 0))
+    else:
+        tela.fill((0, 0, 20))
+
     for evento in pygame.event.get():
 
         if evento.type == pygame.QUIT:
             rodando = False
 
+        # =====================
+        # MENU
+        # =====================
+
         if estado == MENU:
 
             if evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_SPACE:
+
+                if evento.key == pygame.K_1:
+                    modo_jogo = 1
+                    condicao = 42
                     reiniciar()
                     estado = JOGANDO
+
+                if evento.key == pygame.K_2:
+                    modo_jogo = 2
+                    condicao = 27
+                    reiniciar()
+                    estado = JOGANDO
+
+
+        # =====================
+        # JOGANDO
+        # =====================
 
         elif estado == JOGANDO:
 
             if evento.type == pygame.KEYDOWN:
 
+                # Jogador 1 atira
                 if evento.key == pygame.K_SPACE:
 
                     tiros.append(
@@ -109,25 +200,58 @@ while rodando:
                     if som_tiro:
                         som_tiro.play()
 
+                # Jogador 2 atira
+                if modo_jogo == 2:
+
+                    if evento.key == pygame.K_w:
+
+                        tiros.append(
+                            pygame.Rect(jogador2_x + 30,jogador2_y,5,15))
+
+                        if som_tiro:
+                            som_tiro.play()
+
+        # =====================
+        # GAME OVER
+        # =====================
+
         elif estado == GAMEOVER:
+            condicao = 0
 
             if evento.type == pygame.KEYDOWN:
+
                 if evento.key == pygame.K_r:
                     reiniciar()
                     estado = JOGANDO
 
+                if evento.key == pygame.K_ESCAPE:
+                    estado = MENU
+
+    # =========================
     # MENU
+    # =========================
+
     if estado == MENU:
 
         tela.fill((0, 0, 20))
-        iniciar = fonte.render("Pressione ESPACO para jogar",True,(255, 255, 255))
-        tela.blit(logo,(LARGURA // 2 - logo.get_width() // 2, 90))
-        tela.blit(iniciar,(LARGURA // 2 - iniciar.get_width() // 2,440))
 
-    # JOGO
+        titulo = fonte.render("Escolha o modo",True,(255, 255, 255))
+        txt1 = fonte.render("1 - Um Jogador",True,(255, 255, 255))
+        txt2 = fonte.render("2 - Dois Jogadores",True,(255, 255, 255))
+        tela.blit(logo,(LARGURA // 2 - logo.get_width() // 2,20))
+        tela.blit(titulo,(LARGURA // 2 - titulo.get_width() // 2, 430))
+        tela.blit(txt1,(LARGURA // 2 - txt1.get_width() // 2,480))
+        tela.blit(txt2,(LARGURA // 2 - txt2.get_width() // 2,520))
+
+    # =========================
+    # JOGANDO
+    # =========================
+
     elif estado == JOGANDO:
 
         teclas = pygame.key.get_pressed()
+
+        # Jogador 1
 
         if teclas[pygame.K_LEFT]:
             jogador_x -= velocidade
@@ -135,16 +259,34 @@ while rodando:
         if teclas[pygame.K_RIGHT]:
             jogador_x += velocidade
 
+        # Jogador 2
+
+        if modo_jogo == 2:
+
+            if teclas[pygame.K_a]:
+                jogador2_x -= velocidade
+
+            if teclas[pygame.K_d]:
+                jogador2_x += velocidade
+
         jogador_x = max(0,min(LARGURA - 64, jogador_x))
 
-        # Spawn dos inimigos (mais lento)
+        jogador2_x = max(0, min(LARGURA - 64, jogador2_x))
+
+        # =====================
+        # SPAWN
+        # =====================
+
         spawn_timer += 1
 
-        if spawn_timer >= 80:
+        if spawn_timer >= condicao:
             inimigos.append(Inimigo())
             spawn_timer = 0
 
-        # Atualizar tiros
+        # =====================
+        # TIROS
+        # =====================
+
         for tiro in tiros[:]:
 
             tiro.y -= 10
@@ -152,14 +294,16 @@ while rodando:
             if tiro.bottom < 0:
                 tiros.remove(tiro)
 
-        # Atualizar inimigos
+        # =====================
+        # INIMIGOS
+        # =====================
+
         for inimigo in inimigos[:]:
 
             inimigo.mover()
 
             hitbox = pygame.Rect(inimigo.x,inimigo.y,50,50)
 
-            # Colisão tiro x inimigo
             for tiro in tiros[:]:
 
                 if hitbox.colliderect(tiro):
@@ -170,54 +314,88 @@ while rodando:
                     if inimigo in inimigos:
                         inimigos.remove(inimigo)
 
+                        if som_explosao:
+                            som_explosao.play()
+
                     pontos += 1
                     break
 
-            # Inimigo escapou
-            if inimigo in inimigos and inimigo.y > ALTURA:
+            if inimigo in inimigos:
 
-                inimigos.remove(inimigo)
+                if inimigo.y > ALTURA:
 
-                vida -= 10
+                    inimigos.remove(inimigo)
 
-        # Game Over
+                    vida -= 10
+
+                    if som_dano:
+                        som_dano.play()
+
+        # =====================
+        # GAME OVER
+        # =====================
+
         if vida <= 0:
+
             estado = GAMEOVER
 
-        # Desenho
-        tela.fill((0, 0, 20))
+            if not som_gameover_tocado:
 
+                if som_gameover:
+                    som_gameover.play()
+
+                som_gameover_tocado = True
+
+        # =====================
+        # DESENHO
+        # =====================
+        
+        # Jogador 1
         tela.blit(nave_img,(jogador_x, jogador_y))
 
+        # Jogador 2
+        if modo_jogo == 2:
+            tela.blit(nave2_img,(jogador2_x, jogador2_y))
+
+        # Tiros
         for tiro in tiros:
             pygame.draw.rect(tela,(255, 255, 0),tiro)
 
+        # Inimigos
         for inimigo in inimigos:
             inimigo.desenhar()
 
-        # Texto de pontos
+        # Pontos
         texto = fonte.render(f"Pontos: {pontos}",True,(255, 255, 255))
 
         tela.blit(texto, (10, 10))
 
-        # Barra de vida
+        # Vida
         pygame.draw.rect(tela,(255, 0, 0),(10, 50, 200, 20))
 
         pygame.draw.rect(tela,(0, 255, 0),(10, 50, vida * 2, 20))
 
         vida_txt = fonte.render(f"Vida: {vida}",True,(255, 255, 255))
 
-        tela.blit(vida_txt,(220, 45))
+        tela.blit(vida_txt, (220, 45))
 
+    # =========================
     # GAME OVER
+    # =========================
+
     elif estado == GAMEOVER:
+
         tela.fill((0, 0, 0))
+
         gameover = fonte_grande.render("GAME OVER",True,(255, 0, 0))
         score = fonte.render(f"Pontos: {pontos}",True,(255, 255, 255))
-        reiniciar_txt = fonte.render("Pressione R para reiniciar",True,(255, 255, 255))
-        tela.blit(gameover,(LARGURA // 2 - gameover.get_width() // 2,200))
-        tela.blit(score,(LARGURA // 2 - score.get_width() // 2,300))
-        tela.blit(reiniciar_txt,(LARGURA // 2 - reiniciar_txt.get_width() // 2,350))
+        reiniciar_txt = fonte.render("R - Reiniciar",True,(255, 255, 255))
+        menu_txt = fonte.render("ESC - Menu",True,(255, 255, 255))
+
+        tela.blit(gameover,(LARGURA // 2 - gameover.get_width() // 2,180))
+        tela.blit(score,(LARGURA // 2 - score.get_width() // 2,280))
+        tela.blit(reiniciar_txt,(LARGURA // 2 - reiniciar_txt.get_width() // 2,340))
+        tela.blit(menu_txt,(LARGURA // 2 - menu_txt.get_width() // 2,390))
 
     pygame.display.flip()
 
