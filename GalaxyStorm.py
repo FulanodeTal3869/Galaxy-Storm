@@ -43,7 +43,7 @@ som_gameover_tocado = False
 # =========================
 
 logo = pygame.image.load("logo.png").convert_alpha()
-logo = pygame.transform.scale(logo, (300, 400))
+logo = pygame.transform.scale(logo, (800, 600))
 
 nave_img = pygame.image.load("nave.png").convert_alpha()
 nave_img = pygame.transform.scale(nave_img, (64, 64))
@@ -69,6 +69,7 @@ try:
     som_explosao = pygame.mixer.Sound("explosão.wav")
 except:
     som_explosao = None
+
 
 # =========================
 # FONTES
@@ -172,7 +173,7 @@ while rodando:
 
                 if evento.key == pygame.K_1:
                     modo_jogo = 1
-                    condicao = 42
+                    condicao = 53
                     reiniciar()
                     estado = JOGANDO
 
@@ -192,7 +193,7 @@ while rodando:
             if evento.type == pygame.KEYDOWN:
 
                 # Jogador 1 atira
-                if evento.key == pygame.K_SPACE:
+                if evento.key == pygame.K_f:
 
                     tiros.append(
                         pygame.Rect(jogador_x + 30,jogador_y,5,15))
@@ -203,7 +204,7 @@ while rodando:
                 # Jogador 2 atira
                 if modo_jogo == 2:
 
-                    if evento.key == pygame.K_w:
+                    if evento.key == pygame.K_KP_0:
 
                         tiros.append(
                             pygame.Rect(jogador2_x + 30,jogador2_y,5,15))
@@ -216,7 +217,6 @@ while rodando:
         # =====================
 
         elif estado == GAMEOVER:
-            condicao = 0
 
             if evento.type == pygame.KEYDOWN:
 
@@ -233,15 +233,10 @@ while rodando:
 
     if estado == MENU:
 
-        tela.fill((0, 0, 20))
+        tela.fill((0, 0, 0))
 
-        titulo = fonte.render("Escolha o modo",True,(255, 255, 255))
-        txt1 = fonte.render("1 - Um Jogador",True,(255, 255, 255))
-        txt2 = fonte.render("2 - Dois Jogadores",True,(255, 255, 255))
         tela.blit(logo,(LARGURA // 2 - logo.get_width() // 2,20))
-        tela.blit(titulo,(LARGURA // 2 - titulo.get_width() // 2, 430))
-        tela.blit(txt1,(LARGURA // 2 - txt1.get_width() // 2,480))
-        tela.blit(txt2,(LARGURA // 2 - txt2.get_width() // 2,520))
+
 
     # =========================
     # JOGANDO
@@ -253,20 +248,20 @@ while rodando:
 
         # Jogador 1
 
-        if teclas[pygame.K_LEFT]:
+        if teclas[pygame.K_a]:
             jogador_x -= velocidade
 
-        if teclas[pygame.K_RIGHT]:
+        if teclas[pygame.K_d]:
             jogador_x += velocidade
 
         # Jogador 2
 
         if modo_jogo == 2:
 
-            if teclas[pygame.K_a]:
+            if teclas[pygame.K_LEFT]:
                 jogador2_x -= velocidade
 
-            if teclas[pygame.K_d]:
+            if teclas[pygame.K_RIGHT]:
                 jogador2_x += velocidade
 
         jogador_x = max(0,min(LARGURA - 64, jogador_x))
@@ -398,5 +393,4 @@ while rodando:
         tela.blit(menu_txt,(LARGURA // 2 - menu_txt.get_width() // 2,390))
 
     pygame.display.flip()
-
 pygame.quit()
